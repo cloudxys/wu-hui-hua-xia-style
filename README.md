@@ -6,6 +6,8 @@
 |---|---|---|
 | 无悔华夏风格转换器 | [`wu-hui-hua-xia-style/`](wu-hui-hua-xia-style/SKILL.md) | 把任意**含人物**的图片整体转换为《无悔华夏》式新国风扁平插画：人物硬切面平涂 + 加粗墨线 + 不画眼睛，背景柔边云气渐变 |
 
+> English documentation: [README.en.md](README.en.md)
+
 ## 效果对比
 
 | 原图 | 转换结果 |
@@ -28,7 +30,15 @@
 
 技能遵循通用 Agent Skills 约定：每个技能是 `SKILL.md` + 可选 `references/` 的目录。
 
-### 方式一：复制到各工具的全局技能目录
+### 方式一：克隆仓库（推荐）
+
+```bash
+git clone https://github.com/cloudxys/wu-hui-hua-xia-style.git
+```
+
+克隆下来即可用「方式二」复制或「方式三」联接；也可以直接把工具的技能目录指向 `wu-hui-hua-xia-style/`。
+
+### 方式二：复制到各工具的全局技能目录
 
 把 `wu-hui-hua-xia-style/` 整个目录复制到你所用工具的技能根下：
 
@@ -61,12 +71,21 @@ done
 
 安装后**重启对应工具**（技能在会话启动时扫描）。
 
-### 方式二：只装一处，用目录联接统一
+### 方式三：只装一处，用目录联接统一
 
-把 5 个根都指向同一份源目录，避免多副本漂移。Windows：
+把 5 个根都指向同一份源目录，避免多副本漂移（本仓库作者就是这么用的）。macOS / Linux：
+
+```bash
+target="$PWD/wu-hui-hua-xia-style"
+for r in ~/.agents/skills ~/.claude/skills ~/.codex/skills ~/.gemini/skills ~/.config/opencode/skills; do
+  mkdir -p "$r" && rm -rf "$r/wu-hui-hua-xia-style" && ln -s "$target" "$r/wu-hui-hua-xia-style"
+done
+```
+
+Windows（PowerShell）：
 
 ```powershell
-$target = "D:\path\to\wuhuistyle-skills\wu-hui-hua-xia-style"
+$target = "D:\path\to\wu-hui-hua-xia-style"
 foreach ($r in @("$env:USERPROFILE\.agents\skills","$env:USERPROFILE\.claude\skills","$env:USERPROFILE\.codex\skills","$env:USERPROFILE\.gemini\skills","$env:USERPROFILE\.config\opencode\skills")) {
   $p = Join-Path $r "wu-hui-hua-xia-style"
   if (Test-Path $p) { Remove-Item $p -Recurse -Force }
@@ -88,16 +107,17 @@ foreach ($r in @("$env:USERPROFILE\.agents\skills","$env:USERPROFILE\.claude\ski
 
 ```
 wu-hui-hua-xia-style/
-├── README.md
+├── README.md                        中文说明
+├── README.en.md                     English documentation
 ├── LICENSE
-├── docs/                             # 效果对比图与支持二维码
+├── docs/                            效果对比图与支持二维码
 │   ├── original.png
 │   ├── result.jpg
 │   └── support.png
 └── wu-hui-hua-xia-style/
-    ├── SKILL.md                      # 技能正文：输入、识别、流程、工具调用、异常处理、验收
+    ├── SKILL.md                     技能正文：输入、识别、流程、工具调用、异常处理、验收
     └── references/
-        └── style-prompts.md          # 唯一提示词来源：硬指标、正/负向提示词、修正指令表、色板、自检清单
+        └── style-prompts.md         唯一提示词来源：硬指标、正/负向提示词、修正指令表、色板、自检清单
 ```
 
 ## 更新记录

@@ -1,0 +1,147 @@
+# wuhuistyle-skills
+
+Agent Skills for **flat Chinese-style (guofeng) art conversion**. Currently ships one skill:
+
+| Skill | Directory | What it does |
+|---|---|---|
+| Wuhui Huaxia Style Converter | [`wu-hui-hua-xia-style/`](wu-hui-hua-xia-style/SKILL.md) | Redraws any **people-containing** image as a flat new-guofeng illustration: hard geometric facets on the figure, bold ink outlines, **no eyes drawn**, and a soft cloud-gradient background |
+
+> 中文说明见 [README.md](README.md)。
+
+## Before / after
+
+| Original | Result |
+|---|---|
+| <img src="docs/original.png" width="380"> | <img src="docs/result.jpg" width="380"> |
+
+The figure is rebuilt from large sharp facets — flat fills inside each facet, hard edges with zero blending between them, only 2–3 tonal steps — with bold ink outlines and a completely empty eye region. The background is converted from a photo into soft, layered cloud gradients that keep the atmosphere and depth of the original scene.
+
+## What problem it solves
+
+A generic "make it flat illustration" prompt lets the model improvise, and the usual failures are: the figure comes out soft and painterly, the eyes get drawn with pupils and highlights, the background is left as the untouched photo, or the background turns into hard mosaic blocks. This skill turns those into **checkable hard rules**:
+
+- **Hard figure** — large sharp facets, flat fill, hard edges with zero blending, only 2–3 tonal steps
+- **Soft background** — 3–5 layers of soft cloud gradient fading into each other with haze between layers; hard-edged blocks and mosaic are rejected
+- **No eyes** — the eye region is left empty: no pupil, sclera, iris, eyelashes, highlights, or eyeliner
+- **Simplification** — bead strings become single-colour dots, ornaments are reduced to one or two broad shapes, no fine detail
+- **Locked composition** — the number of figures, their poses and positions, and the background layout must match the original
+
+## Install
+
+Each skill follows the Agent Skills convention: a directory with `SKILL.md` plus an optional `references/`.
+
+### Option 1: clone the repo
+
+```bash
+git clone https://github.com/cloudxys/wu-hui-hua-xia-style.git
+```
+
+You can then copy or link `wu-hui-hua-xia-style/` into your tool's skill root (Option 2), or point your tool at it directly.
+
+### Option 2: copy into each tool's global skill root
+
+| Tool | Global skill directory |
+|---|---|
+| Shared across tools (Claude Code / Gemini CLI / OpenCode and others read it) | `~/.agents/skills/` |
+| Claude Code | `~/.claude/skills/` |
+| Codex | `~/.codex/skills/` |
+| Gemini CLI | `~/.gemini/skills/` |
+| OpenCode | `~/.config/opencode/skills/` |
+
+macOS / Linux:
+
+```bash
+for r in ~/.agents/skills ~/.claude/skills ~/.codex/skills ~/.gemini/skills ~/.config/opencode/skills; do
+  mkdir -p "$r" && cp -r wu-hui-hua-xia-style "$r/"
+done
+```
+
+Windows (PowerShell):
+
+```powershell
+$src = ".\wu-hui-hua-xia-style"
+$roots = @("$env:USERPROFILE\.agents\skills", "$env:USERPROFILE\.claude\skills", "$env:USERPROFILE\.codex\skills", "$env:USERPROFILE\.gemini\skills", "$env:USERPROFILE\.config\opencode\skills")
+foreach ($r in $roots) {
+  New-Item -ItemType Directory -Force -Path "$r" | Out-Null
+  Copy-Item -LiteralPath $src -Destination $r -Recurse -Force
+}
+```
+
+Restart the tool afterwards — skills are scanned at session start.
+
+### Option 3 (recommended): install once, link everywhere
+
+Keep one source of truth and point every root at it, so copies cannot drift. macOS / Linux:
+
+```bash
+target="$PWD/wu-hui-hua-xia-style"
+for r in ~/.agents/skills ~/.claude/skills ~/.codex/skills ~/.gemini/skills ~/.config/opencode/skills; do
+  mkdir -p "$r" && rm -rf "$r/wu-hui-hua-xia-style" && ln -s "$target" "$r/wu-hui-hua-xia-style"
+done
+```
+
+Windows (PowerShell):
+
+```powershell
+$target = "D:\path\to\wu-hui-hua-xia-style"
+foreach ($r in @("$env:USERPROFILE\.agents\skills","$env:USERPROFILE\.claude\skills","$env:USERPROFILE\.codex\skills","$env:USERPROFILE\.gemini\skills","$env:USERPROFILE\.config\opencode\skills")) {
+  $p = Join-Path $r "wu-hui-hua-xia-style"
+  if (Test-Path $p) { Remove-Item $p -Recurse -Force }
+  New-Item -ItemType Junction -Path $p -Target $target | Out-Null
+}
+```
+
+## Usage
+
+Send an image containing people and say "convert this to wuhui huaxia style". The skill will:
+
+1. Read the image and record, item by item, every figure (count / position / pose / clothing / props) and every background element
+2. Load the positive and negative prompts from `references/style-prompts.md` and call the image generation capability using the **original image as the image-to-image input**
+3. Read the output back and check it against an 11-item self-check list (the first 5 are hard vetoes), regenerating from the original whenever it fails
+
+**Two-reference workflow (strongly recommended):** pass the *original image* together with a *sample whose style you have already approved* into the image tool — image 1 locks the composition, image 2 locks the art style. This is far more reliable than text prompts alone.
+
+## Repository layout
+
+```
+wuhui-style-skills/                 (this repo: wu-hui-hua-xia-style)
+├── README.md                       中文说明
+├── README.en.md                    English documentation (this file)
+├── LICENSE
+├── docs/                           before/after images and support QR
+│   ├── original.png
+│   ├── result.jpg
+│   └── support.png
+└── wu-hui-hua-xia-style/
+    ├── SKILL.md                    Skill body: inputs, analysis, workflow, tool calls, error handling, acceptance
+    └── references/
+        └── style-prompts.md        Single source of prompts: hard rules, positive/negative prompts, fix table, palette, checklist
+```
+
+## Changelog
+
+- **v1.4.0** Split "hard figure / soft background" into two independent rules; added the simplification principle (beads, ornaments and folds must not be finely rendered)
+- **v1.3.0** Eyes changed to "never draw"; background changed from hard-edged blocks to soft gradients
+- **v1.2.0** Added background layering and figure/background hierarchy rules
+- **v1.1.0** Added style anchors, colour palette and self-check list; fixed where bold outlines may be used
+- **v1.0.0** First release
+
+## Support
+
+If this skill saved you from endless prompt tuning, you're welcome to buy me a coffee ☕
+
+<p align="center">
+  <img src="docs/support.png" width="300" alt="support QR code">
+</p>
+
+## Disclaimer
+
+- This is an **unofficial, fan-made prompt-engineering project**. It is **not affiliated with, authorised by, or endorsed by** the game *Wuhui Huaxia* / 《无悔华夏》 or its developer or publisher.
+- The repository contains **no official game assets, screenshots, or artwork**; everything here is original prompt text, rules and documentation.
+- `docs/original.png` is a third-party portrait photo used for demonstration, and `docs/result.jpg` is a stylised result produced with this skill; both are shown for illustration only and will be removed on request from the rights holder.
+- All game names and trademarks belong to their respective owners and are used here only **descriptively**.
+- Do not use this skill to produce content that infringes copyright or portrait rights; you are responsible for the compliance of anything you generate.
+
+## License
+
+The prompts and documentation in this repository are released under the [MIT License](LICENSE).
