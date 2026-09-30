@@ -1,0 +1,22 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.idea/
+.vscode/
+
+# 生成物与临时文件
+*.tmp
+*.log
+__pycache__/
+*.pyc
+
+# 不要把转换出来的成品图或任何第三方参考图提交进来
+output/
+samples/
+*.generated.png
+
+# 本地凭据
+.env
+*.token
