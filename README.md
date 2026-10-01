@@ -30,68 +30,86 @@
 
 技能遵循通用 Agent Skills 约定：每个技能是 `SKILL.md` + 可选 `references/` 的目录。
 
-### 方式一：克隆仓库（推荐）
+**📖 完整安装指南（含不通过 GitHub 的安装、全局/项目级区别、各工具命令、卸载与排错）：[docs/install.md](docs/install.md)**
 
-```bash
-git clone https://github.com/cloudxys/wu-hui-hua-xia-style.git
+### 不想用 GitHub 也行
+
+三种拿文件的方式，任选其一：
+
+```powershell
+# Windows：直接下 ZIP 并解压（无需 git）
+$zip = "$env:TEMP\wuhui.zip"
+Invoke-WebRequest "https://github.com/cloudxys/wu-hui-hua-xia-style/archive/refs/heads/main.zip" -OutFile $zip
+Expand-Archive $zip -DestinationPath "$env:TEMP\wuhui" -Force
 ```
 
-克隆下来即可用「方式二」复制或「方式三」联接；也可以直接把工具的技能目录指向 `wu-hui-hua-xia-style/`。
+```bash
+# macOS / Linux
+tmp=$(mktemp -d) && curl -L -o "$tmp/w.zip" https://github.com/cloudxys/wu-hui-hua-xia-style/archive/refs/heads/main.zip && unzip -q "$tmp/w.zip" -d "$tmp"
+```
 
-### 方式二：复制到各工具的全局技能目录
+或者**直接拿到 `wu-hui-hua-xia-style/` 文件夹**（别人拷给你），放进技能目录即可。
 
-把 `wu-hui-hua-xia-style/` 整个目录复制到你所用工具的技能根下：
+### 全局安装（所有项目可用）
 
 | 工具 | 全局技能目录 |
 |---|---|
-| 跨工具共享（Claude Code / Gemini CLI / OpenCode 等均读取） | `~/.agents/skills/` |
+| 跨工具共享（Claude Code / Gemini CLI / OpenCode / DSH 等均读取） | `~/.agents/skills/` |
 | Claude Code | `~/.claude/skills/` |
 | Codex | `~/.codex/skills/` |
 | Gemini CLI | `~/.gemini/skills/` |
 | OpenCode | `~/.config/opencode/skills/` |
+| DSH | `~/.dsh/skills/` |
 
-Windows（PowerShell）：
+Windows（PowerShell，把 `$src` 改成你的技能目录）：
 
 ```powershell
-$src = ".\wu-hui-hua-xia-style"
-$roots = @("$env:USERPROFILE\.agents\skills", "$env:USERPROFILE\.claude\skills", "$env:USERPROFILE\.codex\skills", "$env:USERPROFILE\.gemini\skills", "$env:USERPROFILE\.config\opencode\skills")
-foreach ($r in $roots) {
-  New-Item -ItemType Directory -Force -Path "$r" | Out-Null
-  Copy-Item -LiteralPath $src -Destination $r -Recurse -Force
+$src = "$env:TEMP\wuhui\wu-hui-hua-xia-style-main\wu-hui-hua-xia-style"
+foreach ($r in @("$env:USERPROFILE\.agents\skills","$env:USERPROFILE\.claude\skills","$env:USERPROFILE\.codex\skills","$env:USERPROFILE\.gemini\skills","$env:USERPROFILE\.config\opencode\skills","$env:USERPROFILE\.dsh\skills")) {
+  New-Item -ItemType Directory -Force -Path $r | Out-Null
+  $dst = Join-Path $r 'wu-hui-hua-xia-style'
+  if (Test-Path $dst) { Remove-Item $dst -Recurse -Force }
+  Copy-Item -LiteralPath $src -Destination $dst -Recurse -Force
 }
 ```
 
 macOS / Linux：
 
 ```bash
-for r in ~/.agents/skills ~/.claude/skills ~/.codex/skills ~/.gemini/skills ~/.config/opencode/skills; do
-  mkdir -p "$r" && cp -r wu-hui-hua-xia-style "$r/"
+SRC="$HOME/Downloads/wu-hui-hua-xia-style"
+for r in "$HOME/.agents/skills" "$HOME/.claude/skills" "$HOME/.codex/skills" "$HOME/.gemini/skills" "$HOME/.config/opencode/skills" "$HOME/.dsh/skills"; do
+  mkdir -p "$r" && rm -rf "$r/wu-hui-hua-xia-style" && cp -r "$SRC" "$r/wu-hui-hua-xia-style"
 done
 ```
 
 安装后**重启对应工具**（技能在会话启动时扫描）。
 
-### 方式三：只装一处，用目录联接统一
+### 项目级安装（只对该项目生效，可随仓库共享）
 
-把 5 个根都指向同一份源目录，避免多副本漂移（本仓库作者就是这么用的）。macOS / Linux：
+在**项目根目录**（即 `.git` 所在目录）执行：
 
 ```bash
-target="$PWD/wu-hui-hua-xia-style"
-for r in ~/.agents/skills ~/.claude/skills ~/.codex/skills ~/.gemini/skills ~/.config/opencode/skills; do
-  mkdir -p "$r" && rm -rf "$r/wu-hui-hua-xia-style" && ln -s "$target" "$r/wu-hui-hua-xia-style"
+mkdir -p .agents/skills && cp -r /path/to/wu-hui-hua-xia-style .agents/skills/
+```
+
+```powershell
+New-Item -ItemType Directory -Force -Path ".agents\skills" | Out-Null
+Copy-Item -LiteralPath "C:\path\to\wu-hui-hua-xia-style" -Destination ".agents\skills\wu-hui-hua-xia-style" -Recurse -Force
+```
+
+`.agents/skills/` 是跨工具通用约定，Claude Code 用 `.claude/skills/`、OpenCode 用 `.opencode/skills/`、Gemini CLI 用 `.gemini/skills/`。提交进仓库后队友 pull 即可用。
+
+### 进阶：只装一份，软链到各处
+
+想"改一处、处处生效"就用软链（Windows 用目录联接，不需要管理员权限）：
+
+```bash
+for r in ~/.agents/skills ~/.claude/skills ~/.codex/skills ~/.gemini/skills ~/.config/opencode/skills ~/.dsh/skills; do
+  mkdir -p "$r" && rm -rf "$r/wu-hui-hua-xia-style" && ln -s "$PWD/wu-hui-hua-xia-style" "$r/wu-hui-hua-xia-style"
 done
 ```
 
-Windows（PowerShell）：
-
-```powershell
-$target = "D:\path\to\wu-hui-hua-xia-style"
-foreach ($r in @("$env:USERPROFILE\.agents\skills","$env:USERPROFILE\.claude\skills","$env:USERPROFILE\.codex\skills","$env:USERPROFILE\.gemini\skills","$env:USERPROFILE\.config\opencode\skills")) {
-  $p = Join-Path $r "wu-hui-hua-xia-style"
-  if (Test-Path $p) { Remove-Item $p -Recurse -Force }
-  New-Item -ItemType Junction -Path $p -Target $target | Out-Null
-}
-```
+> 注意：源目录一旦被移动或删除，链接就会断；要"各装各的互不影响"就用复制。
 
 ## 使用
 
@@ -110,7 +128,8 @@ wu-hui-hua-xia-style/
 ├── README.md                        中文说明
 ├── README.en.md                     English documentation
 ├── LICENSE
-├── docs/                            效果对比图与支持二维码
+├── docs/                            安装指南、效果对比图与支持二维码
+│   ├── install.md                   完整安装指南（离线安装 / 全局 vs 项目级 / 卸载排错）
 │   ├── original.png
 │   ├── result.jpg
 │   └── support.png

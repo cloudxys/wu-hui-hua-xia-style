@@ -30,66 +30,88 @@ A generic "make it flat illustration" prompt lets the model improvise, and the u
 
 Each skill follows the Agent Skills convention: a directory with `SKILL.md` plus an optional `references/`.
 
-### Option 1: clone the repo
+**📖 Full installation guide — offline/ZIP install, global vs project-local, per-tool commands, uninstall and troubleshooting: [docs/install.md](docs/install.md)** (Chinese)
+
+### No GitHub needed
+
+Three ways to obtain the files — pick one:
 
 ```bash
-git clone https://github.com/cloudxys/wu-hui-hua-xia-style.git
+# macOS / Linux: download the ZIP (no git required)
+tmp=$(mktemp -d)
+curl -L -o "$tmp/w.zip" https://github.com/cloudxys/wu-hui-hua-xia-style/archive/refs/heads/main.zip
+unzip -q "$tmp/w.zip" -d "$tmp"
 ```
 
-You can then copy or link `wu-hui-hua-xia-style/` into your tool's skill root (Option 2), or point your tool at it directly.
+```powershell
+# Windows
+$zip = "$env:TEMP\wuhui.zip"
+Invoke-WebRequest "https://github.com/cloudxys/wu-hui-hua-xia-style/archive/refs/heads/main.zip" -OutFile $zip
+Expand-Archive $zip -DestinationPath "$env:TEMP\wuhui" -Force
+```
 
-### Option 2: copy into each tool's global skill root
+Or simply get the `wu-hui-hua-xia-style/` folder from someone and copy it in.
+
+### Global install (available in every project)
 
 | Tool | Global skill directory |
 |---|---|
-| Shared across tools (Claude Code / Gemini CLI / OpenCode and others read it) | `~/.agents/skills/` |
+| Shared across tools (Claude Code / Gemini CLI / OpenCode / DSH read it) | `~/.agents/skills/` |
 | Claude Code | `~/.claude/skills/` |
 | Codex | `~/.codex/skills/` |
 | Gemini CLI | `~/.gemini/skills/` |
 | OpenCode | `~/.config/opencode/skills/` |
+| DSH | `~/.dsh/skills/` |
 
 macOS / Linux:
 
 ```bash
-for r in ~/.agents/skills ~/.claude/skills ~/.codex/skills ~/.gemini/skills ~/.config/opencode/skills; do
-  mkdir -p "$r" && cp -r wu-hui-hua-xia-style "$r/"
+SRC="$HOME/Downloads/wu-hui-hua-xia-style"
+for r in "$HOME/.agents/skills" "$HOME/.claude/skills" "$HOME/.codex/skills" "$HOME/.gemini/skills" "$HOME/.config/opencode/skills" "$HOME/.dsh/skills"; do
+  mkdir -p "$r" && rm -rf "$r/wu-hui-hua-xia-style" && cp -r "$SRC" "$r/wu-hui-hua-xia-style"
 done
 ```
 
 Windows (PowerShell):
 
 ```powershell
-$src = ".\wu-hui-hua-xia-style"
-$roots = @("$env:USERPROFILE\.agents\skills", "$env:USERPROFILE\.claude\skills", "$env:USERPROFILE\.codex\skills", "$env:USERPROFILE\.gemini\skills", "$env:USERPROFILE\.config\opencode\skills")
-foreach ($r in $roots) {
-  New-Item -ItemType Directory -Force -Path "$r" | Out-Null
-  Copy-Item -LiteralPath $src -Destination $r -Recurse -Force
+$src = "$env:TEMP\wuhui\wu-hui-hua-xia-style-main\wu-hui-hua-xia-style"
+foreach ($r in @("$env:USERPROFILE\.agents\skills","$env:USERPROFILE\.claude\skills","$env:USERPROFILE\.codex\skills","$env:USERPROFILE\.gemini\skills","$env:USERPROFILE\.config\opencode\skills","$env:USERPROFILE\.dsh\skills")) {
+  New-Item -ItemType Directory -Force -Path $r | Out-Null
+  $dst = Join-Path $r 'wu-hui-hua-xia-style'
+  if (Test-Path $dst) { Remove-Item $dst -Recurse -Force }
+  Copy-Item -LiteralPath $src -Destination $dst -Recurse -Force
 }
 ```
 
 Restart the tool afterwards — skills are scanned at session start.
 
-### Option 3 (recommended): install once, link everywhere
+### Project-local install (scoped to one repository, shareable with your team)
 
-Keep one source of truth and point every root at it, so copies cannot drift. macOS / Linux:
+Run this from the **project root** (where `.git` lives):
 
 ```bash
-target="$PWD/wu-hui-hua-xia-style"
-for r in ~/.agents/skills ~/.claude/skills ~/.codex/skills ~/.gemini/skills ~/.config/opencode/skills; do
-  mkdir -p "$r" && rm -rf "$r/wu-hui-hua-xia-style" && ln -s "$target" "$r/wu-hui-hua-xia-style"
+mkdir -p .agents/skills && cp -r /path/to/wu-hui-hua-xia-style .agents/skills/
+```
+
+```powershell
+New-Item -ItemType Directory -Force -Path ".agents\skills" | Out-Null
+Copy-Item -LiteralPath "C:\path\to\wu-hui-hua-xia-style" -Destination ".agents\skills\wu-hui-hua-xia-style" -Recurse -Force
+```
+
+`.agents/skills/` is the cross-tool convention; Claude Code also reads `.claude/skills/`, OpenCode `.opencode/skills/`, Gemini CLI `.gemini/skills/`. Commit it and your teammates get the skill on their next pull.
+
+### Advanced: install once, link everywhere
+
+Keep one source of truth so every root stays in sync (on Windows use a directory junction; no admin rights needed):
+
+```bash
+for r in ~/.agents/skills ~/.claude/skills ~/.codex/skills ~/.gemini/skills ~/.config/opencode/skills ~/.dsh/skills; do
+  mkdir -p "$r" && rm -rf "$r/wu-hui-hua-xia-style" && ln -s "$PWD/wu-hui-hua-xia-style" "$r/wu-hui-hua-xia-style"
 done
 ```
 
-Windows (PowerShell):
-
-```powershell
-$target = "D:\path\to\wu-hui-hua-xia-style"
-foreach ($r in @("$env:USERPROFILE\.agents\skills","$env:USERPROFILE\.claude\skills","$env:USERPROFILE\.codex\skills","$env:USERPROFILE\.gemini\skills","$env:USERPROFILE\.config\opencode\skills")) {
-  $p = Join-Path $r "wu-hui-hua-xia-style"
-  if (Test-Path $p) { Remove-Item $p -Recurse -Force }
-  New-Item -ItemType Junction -Path $p -Target $target | Out-Null
-}
-```
+> Note: a symlink breaks if the source directory is moved or deleted; use plain copies when you want each install to stand alone.
 
 ## Usage
 
@@ -108,7 +130,8 @@ wuhui-style-skills/                 (this repo: wu-hui-hua-xia-style)
 ├── README.md                       中文说明
 ├── README.en.md                    English documentation (this file)
 ├── LICENSE
-├── docs/                           before/after images and support QR
+├── docs/                           Installation guide, before/after images and support QR
+│   ├── install.md                  Full installation guide (offline, global vs project-local, uninstall)
 │   ├── original.png
 │   ├── result.jpg
 │   └── support.png
