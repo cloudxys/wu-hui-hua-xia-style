@@ -115,11 +115,13 @@ wuhui-style-skills/                 (this repo: wu-hui-hua-xia-style)
 └── wu-hui-hua-xia-style/
     ├── SKILL.md                    Skill body: inputs, analysis, workflow, tool calls, error handling, acceptance
     └── references/
-        └── style-prompts.md        Single source of prompts: hard rules, positive/negative prompts, fix table, palette, checklist
+        ├── style-prompts.md        Style rules: hard requirements, priority order, positive/negative prompts, fix table, palette, checklist
+        └── stability.md            Stability guide: positive substitutes, quantified acceptance, short stable prompt (read when results are inconsistent)
 ```
 
 ## Changelog
 
+- **v1.5.0** Added the stability guide: rule priority (no eyes > hard facets > soft background), a "positive substitute" for the eye area (one flat plane, 1 colour block / 0 lines), quantified acceptance, and a short stable prompt; the background now explicitly excludes watercolour washes and blotches; retries capped at 2, after which the stable prompt plus a two-reference workflow is required
 - **v1.4.0** Split "hard figure / soft background" into two independent rules; added the simplification principle (beads, ornaments and folds must not be finely rendered)
 - **v1.3.0** Eyes changed to "never draw"; background changed from hard-edged blocks to soft gradients
 - **v1.2.0** Added background layering and figure/background hierarchy rules
