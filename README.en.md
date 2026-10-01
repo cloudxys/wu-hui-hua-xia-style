@@ -121,7 +121,8 @@ wuhui-style-skills/                 (this repo: wu-hui-hua-xia-style)
 
 ## Changelog
 
-- **v1.5.0** Added the stability guide: rule priority (no eyes > hard facets > soft background), a "positive substitute" for the eye area (one flat plane, 1 colour block / 0 lines), quantified acceptance, and a short stable prompt; the background now explicitly excludes watercolour washes and blotches; retries capped at 2, after which the stable prompt plus a two-reference workflow is required
+- **v1.6.0** The eye rule now seals the **entire eye region** (blocking the pupil alone is not enough — the model draws upper-lid and lash lines to imply an eye); the background is now described as "clean flat fill + uniform one-way gradient, texture count 0", and "soft edge / soft gradient" is documented as a **wording trap** that pushes the model toward watercolour; added a fix for over-bright backgrounds; made explicit that a second repeat failure means switching to image anchors instead of more wording tweaks
+- **v1.5.0** Added the stability guide: rule priority (no eyes > hard facets > soft background), a "positive substitute" for the eye area, quantified acceptance, and a short stable prompt; background explicitly excludes watercolour washes and blotches; retries capped at 2
 - **v1.4.0** Split "hard figure / soft background" into two independent rules; added the simplification principle (beads, ornaments and folds must not be finely rendered)
 - **v1.3.0** Eyes changed to "never draw"; background changed from hard-edged blocks to soft gradients
 - **v1.2.0** Added background layering and figure/background hierarchy rules
